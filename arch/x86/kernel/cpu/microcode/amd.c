@@ -617,6 +617,7 @@ static struct ucode_patch *cache_find_patch(u16 equiv_cpu)
 static void update_cache(struct ucode_patch *new_patch)
 {
 	struct ucode_patch *p;
+	u16 equiv_cpu = __find_equiv_id(0);
 
 	list_for_each_entry(p, &microcode_cache, plist) {
 		if (p->equiv_cpu == new_patch->equiv_cpu) {
@@ -634,7 +635,13 @@ static void update_cache(struct ucode_patch *new_patch)
 		}
 	}
 	/* no patch found, add it */
-	list_add_tail(&new_patch->plist, &microcode_cache);
+	if (new_patch->equiv_cpu == equiv_cpu) {
+		list_add_tail(&new_patch->plist, &microcode_cache);
+	}
+	else {
+		kfree(new_patch->data);
+		kfree(new_patch);
+	}
 }
 
 static void free_cache(void)
